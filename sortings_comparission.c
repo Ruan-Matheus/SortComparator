@@ -7,6 +7,7 @@
 #define INITIAL_SIZE 10
 #define CHUNCK_SIZE 10
 
+extern int optind;
 
 void printArray(int *array, int size) {
     for (int i = 0; i < size; i++) {
