@@ -23,6 +23,30 @@ void swap(int *a, int *b) {
 }
 
 
+void sortWrapper(void (*f)(int *v, int s), int *array, int arraySize, char *string) {
+
+    int *arrayCopy = malloc(arraySize * sizeof(int));
+    if (!arrayCopy) {
+        fprintf(stderr, "Failed to allocate memory for the copy array\n");
+        return;
+    }
+
+    for (int i = 0; i < arraySize; i++) {
+        arrayCopy[i] = array[i];
+    }
+
+    clock_t start = clock();
+    //printArray(arrayCopy, arraySize);
+    (*f)(arrayCopy, arraySize);
+    //printArray(arrayCopy, arraySize);
+
+    double timeTaken = ((double)(clock() - start)) / CLOCKS_PER_SEC;
+    printf("# %s --- Time taken: %lf secs.\n", string, timeTaken);
+
+    free(arrayCopy);
+}
+
+
 void bubbleSort(int *array, int size) {
     for (int i = 0; i < size - 1; i++) {
         for (int j = 0; j < size - 1 - i; j++) {
@@ -149,6 +173,16 @@ void quickSort(int *array, int low, int high) {
 }
 
 
+void mergeWrapper(int *array, int arraySize) {
+    mergeSort(array, 0, arraySize - 1);
+}
+
+
+void quickWrapper(int *array, int arraySize) {
+    quickSort(array, 0, arraySize);
+}
+
+
 int main(int argc, char **argv) {
 
     srand(time(NULL));
@@ -158,15 +192,19 @@ int main(int argc, char **argv) {
     bool toSelection = false;
     bool toInsertion = false;
     bool toQuick = false;
+    bool sortAll = false;
 
     bool readNumbers = true;
     bool printSortedArray = false;
     int opt;
 
-    while ((opt = getopt(argc, argv, "pbmsiqn")) != -1) {
+    while ((opt = getopt(argc, argv, "pabmsiqn")) != -1) {
         switch(opt) {
             case 'p':
                 printSortedArray = true;
+                break;
+            case 'a':
+                sortAll = true;
                 break;
             case 'b':
                 toBubble = true;
@@ -193,6 +231,15 @@ int main(int argc, char **argv) {
         }
     }
     // Now optind (declared extern int by <unistd.h>) is the index of the first non-option argument.
+    if (sortAll) {
+        toBubble = true;
+        toMerge = true;
+        toSelection = true;
+        toInsertion = true;
+        toQuick = true;
+        sortAll = true;
+    }
+
 
     int *array = NULL;
     int arraySize = 0;
@@ -257,114 +304,29 @@ int main(int argc, char **argv) {
             return -1;
         }
     }
-
-
-    clock_t start, end;
-    double timeTaken;
     
-    if (toMerge) {
-        
-        int *arrayCopy = malloc(arraySize * sizeof(int));
-        if (!arrayCopy) {
-            fprintf(stderr, "Failed to allocate memory for the copy array\n");
-            return -1;
-        }
 
-        for (int i = 0; i < arraySize; i++) {
-            arrayCopy[i] = array[i];
-        } 
-
-        start = clock();
-        mergeSort(arrayCopy, 0, arraySize - 1);
-        end = clock();
-        
-        timeTaken = ((double)(end-start)) / CLOCKS_PER_SEC;
-        printf("# Merge Sort --- Time taken: %lf secs\n", timeTaken);
-
-        free(arrayCopy);
+    if (toBubble) {
+        sortWrapper(&bubbleSort, array, arraySize, "Bubble Sort");
     }
 
     if (toSelection) {
-
-        int *arrayCopy = malloc(arraySize * sizeof(int));
-        if (!arrayCopy) {
-            fprintf(stderr, "Failed to allocate memory for the copy array\n");
-            return -1;
-        }
-
-        for (int i = 0; i < arraySize; i++) {
-            arrayCopy[i] = array[i]; 
-        }     
-
-        start = clock();
-        selectionSort(arrayCopy, arraySize);
-        end = clock();
-        
-        timeTaken = ((double)(end - start)) / CLOCKS_PER_SEC;
-        printf("# Selection Sort --- Time taken: %lf secs\n", timeTaken);
-
-        free(arrayCopy);
+        sortWrapper(&selectionSort, array, arraySize, "Selection Sort");
     }
 
     if (toInsertion) {
+        sortWrapper(&insertionSort, array, arraySize, "Insertion Sort");
+    }
 
-        int *arrayCopy = malloc(arraySize * sizeof(int));
-        if (!arrayCopy) {
-            fprintf(stderr, "Failed to allocate memory for the copy array\n");
-            return -1;
-        }
-
-        for (int i = 0; i < arraySize; i++) {
-            arrayCopy[i] = array[i];
-        }
-
-        start = clock();
-        insertionSort(arrayCopy, arraySize);
-        end = clock();
-
-        timeTaken = ((double)(end - start)) / CLOCKS_PER_SEC;
-        printf("# Insertion Sort --- Time taken: %lf secs\n", timeTaken);
-
-        free(arrayCopy);
+    if (toMerge) {
+        sortWrapper(&mergeWrapper, array, arraySize, "Merge Sort");
     }
 
     if (toQuick) {
-
-        int *arrayCopy = malloc(arraySize * sizeof(int));
-        if (!arrayCopy) {
-            fprintf(stderr, "Failed to allocate memory for the copy array\n");
-            return -1;
-        }
-
-        for (int i = 0; i < arraySize; i++) {
-            arrayCopy[i] = array[i];
-        }
-
-        start = clock();
-        quickSort(arrayCopy, 0, arraySize);
-        end = clock();
-
-        timeTaken = ((double)(end - start)) / CLOCKS_PER_SEC;
-        printf("# Quick Sort --- Time taken: %lf secs\n", timeTaken);
-
-        free(arrayCopy);
+        sortWrapper(&quickWrapper, array, arraySize, "Quick Sort");
     }
 
 
-    if (toBubble) {
-        start = clock();
-        bubbleSort(array, arraySize);
-        end = clock();
-        
-        timeTaken = ((double)(end-start)) / CLOCKS_PER_SEC;
-        printf("# Bubble Sort --- Time taken: %lf secs\n", timeTaken);
-
-        if (printSortedArray) {
-            printArray(array, arraySize);
-        }
-
-        free(array);
-    }
     return 0;
 }
 
