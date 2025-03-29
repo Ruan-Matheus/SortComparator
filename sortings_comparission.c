@@ -152,6 +152,8 @@ int main(int argc, char **argv) {
     if (toQuick) {
         sortWrapper(&quickWrapper, array, arraySize, "Quick Sort");
     }
+    
+    free(array);
 
     return 0;
 }
